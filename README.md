@@ -5,7 +5,7 @@ General SFT scripts for LLMs.
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 
 ## Settings
-We tested with [fastchat models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) and 10k instructions. Our environment is 900G CPU RAM and 8 x A100 40G GPUs. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2.
+We tested with [fastchat models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) and 10k instructions. Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2. Below are cost when train on single node.
 
 | Name | Batch | Accumulations | CPU RAM (GB) | Per GPU (GB) | Training Time |
 | --- | --- | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ Download initial models and put them in [model](model) folder. Put your data in 
 Run `bash code/scripts/tuning.sh RootPath`.
 
 ### Inference Testing
-One-sample by One-sample simple inference can be found [here](code/codes/eval/get_model_infer_simple.py). This is useful when different sample has different length requirement. You should set a `type` key in your data. We use this format: {'question_id': id, 'text': text, 'type': type}. There's a co-use example in [train script](code/scripts/tuning.sh) as well.
+1 by 1 simple inference can be found [here](code/codes/eval/get_model_infer_simple.py). This is useful when different sample has different length requirement. You should set a `type` key in your data. We use this format: {'question_id': id, 'text': text, 'type': type}. There's a co-use example in [train script](code/scripts/tuning.sh) as well.
 ```
 python3 code/codes/eval/get_model_infer_simple.py \
     --model-id vicuna-33B \
