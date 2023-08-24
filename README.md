@@ -5,16 +5,15 @@ General SFT scripts for LLMs.
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 
 ## Settings
-We tested with [fastchat models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) and 10k instructions. Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2. Below are cost when train on single node.
+We tested with [fastchat models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) and 10k instructions (padded to max len). Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2.
 
-| Name | Batch | Accumulations | CPU RAM (GB) | Per GPU (GB) | Training Time |
-| --- | --- | --- | --- | --- | --- |
-| Fastchat-T5-3B | 8 | 2 | 73.01 | 37.12 | 1.04h |
-| Vicuna-7B | 16 | 1 | 189.49 | 33.22 | 0.98h |
-| Vicuna-13B | 8 | 2 | 356.42 | 37.29 | 2.35h |
-| Vicuna-33B | 4 | 4 | 790.57 | 38.96 | 5.74h |
-
-TODO: Llama2-70B testing.
+| Name | Batch | Accumulations | All CPU RAM (GB) | Per GPU (GB) | Training Time | Nodes |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fastchat-T5-3B | 8 | 2 | 73.01 | 37.12 | 1.04h | 1 |
+| Vicuna-7B | 16 | 1 | 189.49 | 33.22 | 0.98h | 1 |
+| Vicuna-13B | 8 | 2 | 356.42 | 37.29 | 2.35h | 1 |
+| Vicuna-33B | 4 | 4 | 790.57 | 38.96 | 5.74h | 1 |
+| Llama2-70B | 2 | 2 | / | / | / | 4 |
 
 ## Workflow
 `RootPath` is the absolute path of this repo.
@@ -47,12 +46,13 @@ python3 code/codes/eval/get_model_infer_batch.py \
     --temperature 0.8 \
     --top-p 0.95
 ```
-We test batch inference with 1k samples (8~512 tokens) from ShareGPT, asking for maximum 512 tokens.
+We test batch inference on single node with 1k samples (8~512 tokens) from ShareGPT, asking for maximum 512 tokens.
 | model | num-gpus | num-partitions | inference time (1k，8 * A100 40G，greedy search) |
 | ---- | ---- | ---- | ---- |
 | Vicuna 7B | 8 | 8 | 25s |
 | Vicuna 13B | 8 | 8 | 1min08s |
 | Vicuna 33B | 8 | 2 | 2min03s |
+| Llama2 70B | 8 | 2 | 9min25s |
 
 ## Acknowledgement
 We thank [Vicuna project](https://github.com/lm-sys/FastChat/tree/main) and [VLLM project](https://github.com/vllm-project/vllm) for their great work.
