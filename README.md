@@ -5,7 +5,7 @@ General SFT scripts for LLMs.
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 
 ## Settings
-We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) (except llama2-70B) and 10k instructions (padded to max len). Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2.
+We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) (except llama2-70B) and 10k instructions (padded to max len). Our env is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2.
 
 | Name | Batch | Accumulations | All CPU RAM (GB) | Per GPU (GB) | Training Time | Nodes |
 | --- | --- | --- | --- | --- | --- | --- |
