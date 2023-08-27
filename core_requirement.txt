@@ -5,6 +5,6 @@ optimum>=1.9.1
 ray>=2.5.1
 tokenizers>=0.13.3
 torch>=2.0.1
-torchtext>=0.15.2
-transformers>=4.31.0
+transformers==4.31.0
+bitsandbytes
 vllm>=0.1.3
