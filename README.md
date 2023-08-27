@@ -7,13 +7,13 @@ We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 ## Settings
 We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) (except llama2-70B) and 10k instructions (padded to max len, file [here](https://github.com/LuJunru/MemoChat/blob/main/data/memochat_instructions/train_10k.json)). Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2.
 
-| Name | Batch | Accumulations | All CPU RAM (GB) | Per GPU (GB) | Training Time | Nodes |
+| Name | Batch | Accumulations | All CPU RAM (GB) | Per GPU (GB) | Train Time | Nodes |
 | --- | --- | --- | --- | --- | --- | --- |
 | T5-3B | 8 | 2 | 73.01 | 37.12 | 1.04h | 1 |
 | Vicuna-7B | 16 | 1 | 189.49 | 33.22 | 0.98h | 1 |
 | Vicuna-13B | 8 | 2 | 356.42 | 37.29 | 2.35h | 1 |
 | Vicuna-33B | 4 | 4 | 790.57 | 38.96 | 5.74h | 1 |
-| Llama2-70B | 4 | 2 | 1403.90 | 39.06 | / | 2 |
+| Llama2-70B-chat-hf | 4 | 2 | 1403.90 | 39.06 | / | 2 |
 
 ## Workflow
 `RootPath` is the absolute path of this repo.
