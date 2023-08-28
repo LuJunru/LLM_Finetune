@@ -94,7 +94,8 @@ for model in "${models[@]}"
             --tf32 True \
             --model_max_length ${MAXLEN} \
             --preprocessed_path ${preprocessed_data_dir} \
-            --gradient_checkpointing True
+            --gradient_checkpointing True \
+            --report_to "none"
         
         # tuning inference
         # python3 ${codedir}/codes/eval/get_model_infer_simple.py \
