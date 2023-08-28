@@ -13,7 +13,7 @@ We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/)
 | Vicuna-7B | 16 | 1 | 189.49 | 33.22 | 0.98h | 1 |
 | Vicuna-13B | 8 | 2 | 356.42 | 37.29 | 2.35h | 1 |
 | Vicuna-33B | 4 | 4 | 790.57 | 38.96 | 5.74h | 1 |
-| Llama2-70B-chat-hf | 4 | 2 | 1486.12 | 39.06 | ~36h | 2 |
+| Llama2-70B-chat-hf | 4 | 2 | 1486.12 | 39.06 | 36.67h | 2 |
 
 ## Workflow
 `RootPath` is the absolute path of this repo.
