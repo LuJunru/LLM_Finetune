@@ -7,13 +7,15 @@ We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 ## Settings
 We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) (except llama2-70B) and 10k instructions (padded to max len, file [here](https://github.com/LuJunru/MemoChat/blob/main/data/memochat_instructions/train_10k.json)). Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2. Note: We have to use two nodes for fine-tuning llama2-70B, and thus consume a lot of time on node communication.
 
-| Name | Batch | Accum | Total CPU RAM (GB) | Per GPU (GB) | Train Time | Nodes |
-| --- | --- | --- | --- | --- | --- | --- |
-| T5-3B | 8 | 2 | 73.01 | 37.12 | 1.04h | 1 |
-| Vicuna-7B | 16 | 1 | 189.49 | 33.22 | 0.98h | 1 |
-| Vicuna-13B | 8 | 2 | 356.42 | 37.29 | 2.35h | 1 |
-| Vicuna-33B | 4 | 4 | 790.57 | 38.96 | 5.74h | 1 |
-| Llama2-70B-chat-hf | 4 | 2 | 1486.12 | 39.06 | 36.67h | 2 |
+|  | FastChat-T5-3B | Vicuna-7B | Vicuna-13B | Vicuna-33B | Llama2-70B-chat-hf |
+| --- | --- | --- | --- | --- | --- |
+| Batch | 8 | 16 | 8 | 4 | 4 |
+| Accumulations | 2 | 1 | 2 | 4 | 2 |
+| Nodes | 1 | 1 | 1 | 1 | 2 |
+| All CPU RAM (GB) | 73.01 | 189.49 | 356.42 | 790.57 | 1486.12 |
+| Avg GPU Util (%) | 92.80 | 83.05 | 93.23 | 97.40 | 97.65 |
+| Training Time | 1.04h | 0.98h | 2.35h | 5.74h | ~37h |
+| DeepSpeed | Zero1 | Zero2 + Offload Optimizer | Zero3 + Offload Optimizer | Zero3 + Offload Optimizer & Params | Zero3 + Offload Optimizer |
 
 ## Workflow
 `RootPath` is the absolute path of this repo.
