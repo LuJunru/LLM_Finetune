@@ -10,13 +10,16 @@ EPOCH=3
 test_data=${datadir}/data/dummy_conversation.json
 
 settings=("")  # use this for zeroshot or finetuning
-models=("t5-3b" "vicuna-7b" "vicuna-13b" "vicuna-33b")
+models=("t5-3b" "vicuna-7b" "vicuna-13b" "vicuna-33b" "llama2-70b")
 
 for model in "${models[@]}"
     do
 
     raw_model_path=${maindir}model/fastchat-${model}/
     case ${model} in 
+        "llama2-70b")
+            RAYGPUS=4
+            ;;
         "vicuna-33b")
             RAYGPUS=2
             ;;
@@ -49,6 +52,10 @@ for model in "${models[@]}"
             "vicuna-33b")
                 PER_GPU_BATCH=4
                 GRA_ACC=4
+                ;;
+            "llama2-70b")
+                PER_GPU_BATCH=4
+                GRA_ACC=2
                 ;;
         esac
 
