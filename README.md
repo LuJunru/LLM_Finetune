@@ -47,7 +47,7 @@ python3 code/codes/eval/get_model_infer_batch.py \
     --temperature 0.8 \
     --top-p 0.95
 ```
-We test batch inference on single node with 1k samples (8~512 tokens) from ShareGPT, asking for maximum 512 tokens.
+Batch inference on 1 node with 1k samples (8~512 tokens) from ShareGPT, asking for maximum 512 tokens.
 | model | num-gpus | num-partitions | inference time (1k，8 * A100 40G，greedy search) |
 | ---- | ---- | ---- | ---- |
 | Vicuna 7B | 8 | 8 | 25s |
