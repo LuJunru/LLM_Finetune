@@ -5,16 +5,16 @@ General SFT scripts for LLMs.
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 
 ## Settings
-We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) (except llama2-70B) and 10k instructions (padded to max len, file [here](https://github.com/LuJunru/MemoChat/blob/main/data/memochat_instructions/train_10k.json)). Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2. Note: We have to use two nodes for fine-tuning llama2-70B, and thus consume a lot of time on node communication.
+We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) (except Llama-2-70B-chat-hf) and 10k instructions (padded to max len, file [here](https://github.com/LuJunru/MemoChat/blob/main/data/memochat_instructions/train_10k.json)). Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2. Note: We have to use two nodes for fine-tuning llama2-70B, and thus consume a lot of time on node communication.
 
-|  | FastChat-T5-3B | Vicuna-7B | Vicuna-13B | Vicuna-33B | Llama2-70B-chat-hf |
+|| T5-3B | Vicuna-7B | Vicuna-13B | Vicuna-33B | Llama2-70B |
 | --- | --- | --- | --- | --- | --- |
 | Given Batch | 8 | 16 | 8 | 4 | 4 |
-| Accumulations | 2 | 1 | 2 | 4 | 2 |
+| Accumulation | 2 | 1 | 2 | 4 | 2 |
 | Nodes | 1 | 1 | 1 | 1 | 2 |
-| CPU RAM (GB) | 73.01 | 189.49 | 356.42 | 790.57 | 1486.12 |
-| GPU Util (%) | 92.80 | 83.05 | 93.23 | 97.40 | 97.65 |
-| Training Time | 1.04h | 0.98h | 2.35h | 5.74h | ~37h |
+| CPU RAM | 73.01G | 189.49G | 356.42G | 790.57G | 1486.12G |
+| GPU Util | 92.80% | 83.05% | 93.23% | 97.40% | 97.65% |
+| SFT Time | 1.04h | 0.98h | 2.35h | 5.74h | ~37h |
 | DeepSpeed | Zero1 | Zero2 + Offload Optimizer | Zero3 + Offload Optimizer | Zero3 + Offload Optimizer & Params | Zero3 + Offload Optimizer |
 
 ## Workflow
