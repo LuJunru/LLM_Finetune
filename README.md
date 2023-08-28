@@ -9,11 +9,11 @@ We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/)
 
 |  | FastChat-T5-3B | Vicuna-7B | Vicuna-13B | Vicuna-33B | Llama2-70B-chat-hf |
 | --- | --- | --- | --- | --- | --- |
-| Batch | 8 | 16 | 8 | 4 | 4 |
+| Given Batch | 8 | 16 | 8 | 4 | 4 |
 | Accumulations | 2 | 1 | 2 | 4 | 2 |
 | Nodes | 1 | 1 | 1 | 1 | 2 |
-| All CPU RAM (GB) | 73.01 | 189.49 | 356.42 | 790.57 | 1486.12 |
-| Avg GPU Util (%) | 92.80 | 83.05 | 93.23 | 97.40 | 97.65 |
+| CPU RAM (GB) | 73.01 | 189.49 | 356.42 | 790.57 | 1486.12 |
+| GPU Util (%) | 92.80 | 83.05 | 93.23 | 97.40 | 97.65 |
 | Training Time | 1.04h | 0.98h | 2.35h | 5.74h | ~37h |
 | DeepSpeed | Zero1 | Zero2 + Offload Optimizer | Zero3 + Offload Optimizer | Zero3 + Offload Optimizer & Params | Zero3 + Offload Optimizer |
 
