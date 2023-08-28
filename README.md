@@ -14,7 +14,7 @@ We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/)
 | Nodes | 1 | 1 | 1 | 1 | 2 |
 | All CPU RAM | 73.01G | 189.49G | 356.42G | 790.57G | 1486.12G |
 | GPU Util | 92.80% | 83.05% | 93.23% | 97.40% | 97.65% |
-| SFT Time | 1.04h | 0.98h | 2.35h | 5.74h | ~37h |
+| SFT Time | 1.04h | 0.98h | 2.35h | 5.74h | 36.67h |
 | DeepSpeed | Zero1 | Zero2 + Offload Optimizer | Zero3 + Offload Optimizer | Zero3 + Offload Optimizer & Params | Zero3 + Offload Optimizer |
 
 ## Workflow
