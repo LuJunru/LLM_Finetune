@@ -12,7 +12,7 @@ We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/)
 | Given Batch | 8 | 16 | 8 | 4 | 4 |
 | Accumulation | 2 | 1 | 2 | 4 | 2 |
 | Nodes | 1 | 1 | 1 | 1 | 2 |
-| CPU RAM | 73.01G | 189.49G | 356.42G | 790.57G | 1486.12G |
+| All CPU RAM | 73.01G | 189.49G | 356.42G | 790.57G | 1486.12G |
 | GPU Util | 92.80% | 83.05% | 93.23% | 97.40% | 97.65% |
 | SFT Time | 1.04h | 0.98h | 2.35h | 5.74h | ~37h |
 | DeepSpeed | Zero1 | Zero2 + Offload Optimizer | Zero3 + Offload Optimizer | Zero3 + Offload Optimizer & Params | Zero3 + Offload Optimizer |
@@ -21,8 +21,7 @@ We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/)
 `RootPath` is the absolute path of this repo.
 
 ### Instruction Tuning
-Download initial models and put them in [model](model) folder. Put your data in [data](data) folder.
-Run `bash code/scripts/tuning.sh RootPath`.
+Download raw models in [model](model) folder. Put your data in [data](data) folder. Run `bash code/scripts/tuning.sh RootPath`.
 
 ### Inference Testing
 1 by 1 simple inference can be found [here](code/codes/eval/get_model_infer_simple.py). This is useful when different sample has different length requirement. You should set a `type` key in your data. We use this format: {'question_id': id, 'text': text, 'type': type}. There's a co-use example in [train script](code/scripts/tuning.sh) as well.
