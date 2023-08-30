@@ -53,6 +53,10 @@ if __name__ == "__main__":
             w = open(tmp_question_file_path, "w")
             start = i * (len(org_questions) // args.num_partitions)
             end = (i + 1) * (len(org_questions) // args.num_partitions)
+
+            if i == args.num_partitions - 1:
+                end = max(end, len(org_questions))
+                
             for org_question in org_questions[start:end]:
                 w.write(org_question)
             w.close()
