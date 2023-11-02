@@ -12,7 +12,7 @@ import transformers
 from transformers import (
     HfArgumentParser,
     T5Tokenizer,
-    LlamaTokenizer,
+    AutoTokenizer,
     set_seed,
 )
 
@@ -73,7 +73,7 @@ def main():
             return src_model_inputs
     else:
         # use truncation_side='left' to preserve linking between end of prompt and target labels
-        tokenizer = LlamaTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left')
+        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left', trust_remote_code=True)
 
         def preprocess_function(examples):
             inputs = [q_pre + example[0]["value"] + qa_link + example[1]["value"] + a_pos for example in examples["conversations"]]
