@@ -15,15 +15,13 @@ from transformers import (
     T5ForConditionalGeneration, 
     T5Tokenizer,
     T5Config,
-    LlamaForCausalLM, 
-    LlamaTokenizer,
-    LlamaConfig,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    AutoConfig,
     Trainer,
     TrainingArguments,
     set_seed,
 )
-
-from optimum.bettertransformer import BetterTransformer
 
 q_pre = "<s>\n"
 qa_link = "\n"
@@ -58,9 +56,46 @@ class DataTrainingArguments:
         default=None, metadata={"help": "Path to the preprocessed training data."}
     )
 
+def maybe_zero_3(param):
+    if hasattr(param, "ds_id"):
+        assert param.ds_status == ZeroParamStatus.NOT_AVAILABLE
+        with zero.GatheredParameters([param]):
+            param = param.data.cpu().clone().detach()
+    return param
+
+def get_peft_state_maybe_zero_3(state_dict, bias):
+    if bias == "none":
+        to_return = {
+            k: state_dict[k].cpu().clone().detach() for k in state_dict if "lora_" in k
+        }
+    elif bias == "all":
+        to_return = {
+            k: state_dict[k] for k in state_dict if "lora_" in k or "bias" in k
+        }
+    elif bias == "lora_only":
+        to_return = {}
+        for k in state_dict:
+            if "lora_" in k:
+                to_return[k] = state_dict[k]
+                bias_name = k.split("lora_")[0] + "bias"
+                if bias_name in state_dict:
+                    to_return[bias_name] = state_dict[bias_name]
+    else:
+        raise NotImplementedError
+    to_return = {k: maybe_zero_3(v) for k, v in to_return.items()}
+    return to_return
+
 def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+
+    if "llama" in model_args.model_name_or_path.lower():
+        from ..flash_attn_patch import replace_llama_attn_with_flash_attn
+        replace_llama_attn_with_flash_attn()
+    elif "t5" in model_args.model_name_or_path.lower():
+        from optimum.bettertransformer import BetterTransformer
+    else:
+        pass
     
     # Setup logging
     logging.basicConfig(
@@ -103,15 +138,16 @@ def main():
         model = T5ForConditionalGeneration.from_pretrained(model_args.model_name_or_path, config=config)
     else:
         # load config and tokenziers
-        config = LlamaConfig.from_pretrained(model_args.model_name_or_path)
-        config.use_cache=False
+        config = AutoConfig.from_pretrained(model_args.model_name_or_path, trust_remote_code=True)
+        config.use_cache = False
         # use truncation_side='left' to preserve linking between end of prompt and target labels
-        tokenizer = LlamaTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left')
+        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left', trust_remote_code=True)
         # initialize modules
-        model = LlamaForCausalLM.from_pretrained(model_args.model_name_or_path, config=config)
+        model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True)
     
     # convert normal model to bettertransformer
-    model = BetterTransformer.transform(model)
+    if "t5" in model_args.model_name_or_path.lower():
+        model = BetterTransformer.transform(model)
 
     # Setup seed
     set_seed(training_args.seed)
@@ -131,14 +167,15 @@ def main():
     train_result = trainer.train()
 
     # convert bettertransformer to normal model
-    trainer.model = BetterTransformer.reverse(trainer.model)
+    if "t5" in model_args.model_name_or_path.lower():
+        trainer.model = BetterTransformer.reverse(trainer.model)
     trainer.save_state()
 
     # save fp16 model under deepspeed zero2 or zero3
     c_stage = json.load(open(training_args.deepspeed, "r"))["zero_optimization"]["stage"]
     if c_stage in [2, 3]:
         if c_stage == 2:
-            w_state_dict = trainer.model.state_dict()
+            w_state_dict = get_peft_state_maybe_zero_3(trainer.model.named_parameters(), "none")
         else:
             w_state_dict = trainer.model_wrapped._zero3_consolidated_16bit_state_dict()
         if trainer.is_world_process_zero():
