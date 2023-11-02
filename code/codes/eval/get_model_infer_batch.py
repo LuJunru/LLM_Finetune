@@ -4,9 +4,20 @@ import os
 import json
 from tqdm import tqdm
 from vllm import LLM, SamplingParams
+from transformers import AutoTokenizer
 
-def run_eval(model_path, max_target_len, question_file, answer_file, temperature, top_p, gpus, load_in_8bit):
+MaxLen=4096
+
+def run_eval(model_path, max_target_len, question_file, answer_file, temperature, top_p, gpus, load_in_8bit, task_type):
     os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(gpus)
+
+    if task_type == "mc":
+        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+        vocab_size = tokenizer.vocab_size
+        A_input_id = tokenizer.convert_tokens_to_ids("A")
+        B_input_id = tokenizer.convert_tokens_to_ids("B")
+        C_input_id = tokenizer.convert_tokens_to_ids("C")
+        D_input_id = tokenizer.convert_tokens_to_ids("D")
 
     qs = []
     qs_ids = []
@@ -17,16 +28,37 @@ def run_eval(model_path, max_target_len, question_file, answer_file, temperature
             qs_ids.append(d_line["question_id"])
 
     model_path = os.path.expanduser(model_path)
-    model = LLM(model=model_path, gpu_memory_utilization=0.85, tensor_parallel_size=len(gpus))
-    sampling_params = SamplingParams(max_tokens=max_target_len, temperature=temperature, top_p=top_p)
+    model = LLM(model=model_path, gpu_memory_utilization=0.85, tensor_parallel_size=len(gpus), max_num_batched_tokens=MaxLen, trust_remote_code=True)
 
-    outputs = [output.outputs[0].text for output in model.generate(qs, sampling_params)]
+    if task_type == "gen":
+        sampling_params = SamplingParams(max_tokens=max_target_len, temperature=temperature, top_p=top_p)
+        outputs = [output.outputs[0].text for output in model.generate(qs, sampling_params)]
+    elif task_type == "mc":
+        sampling_params = SamplingParams(max_tokens=max_target_len, temperature=temperature, top_p=top_p, logprobs=vocab_size)
+        outputs = []
+        for output in model.generate(qs, sampling_params):
+            try:
+                logprobs_output = output.outputs[0].logprobs[0]
+            except:
+                logprobs_output = {
+                    A_input_id: 0.25,
+                    B_input_id: 0.25,
+                    C_input_id: 0.25,
+                    D_input_id: 0.25
+                }
+            choice_dict = {
+                "A": logprobs_output[A_input_id],
+                "B": logprobs_output[B_input_id],
+                "C": logprobs_output[C_input_id],
+                "D": logprobs_output[D_input_id]
+            }
+            outputs.append(sorted(choice_dict.items(), key=lambda x: -x[1])[0][0])
 
     print(outputs[:10])
     
     with open(os.path.expanduser(answer_file), "w") as ans_file:
         for i_d, output in enumerate(outputs):
-            ans_file.write(json.dumps({"question_id": qs_ids[i_d], "text": output}) + "\n")
+            ans_file.write(json.dumps({"question_id": qs_ids[i_d], "prompt": qs[i_d], "text": output}) + "\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -39,6 +71,7 @@ if __name__ == "__main__":
     parser.add_argument("--num-gpus", type=int, default=1)
     parser.add_argument("--num-partitions", type=int, default=1, choices=[1, 2, 4, 8], help="partition data & resources in advance")
     parser.add_argument("--load-in-8bit", action="store_true")
+    parser.add_argument("--task-type", type=str, default="gen", choices=["gen", "mc"])
     args = parser.parse_args()
 
     if args.num_partitions > 1:
@@ -76,7 +109,8 @@ if __name__ == "__main__":
                         args.temperature,
                         args.top_p,
                         [str(u) for u in range(args.num_gpus // args.num_partitions * i, args.num_gpus // args.num_partitions * (i + 1))],
-                        args.load_in_8bit
+                        args.load_in_8bit,
+                        args.task_type
                     ) for i in range(args.num_partitions)
                 ]
             )
@@ -99,5 +133,6 @@ if __name__ == "__main__":
             args.temperature,
             args.top_p,
             [str(u) for u in range(args.num_gpus)],
-            args.load_in_8bit
+            args.load_in_8bit,
+            args.task_type
         )
