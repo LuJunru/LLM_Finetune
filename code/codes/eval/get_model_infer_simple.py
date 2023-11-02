@@ -7,9 +7,6 @@ import json
 from tqdm import tqdm
 import ray
 
-q_pre = "<s>\n"
-qa_link = "\n"
-a_pos = "\n</s>"
 MaxLen = 2048
 TarLen = 512
 
@@ -76,11 +73,19 @@ def get_model_answers(model_path, model_id, question_jsons, ray_num_gpus, load_i
         )
     else:
         model = AutoModelForCausalLM.from_pretrained(
-            model_path, torch_dtype=torch.float16, device_map="auto", max_memory=gpu_memory_dict, load_in_8bit=load_in_8bit
+            model_path, torch_dtype=torch.float16, device_map="auto", max_memory=gpu_memory_dict, load_in_8bit=load_in_8bit, trust_remote_code=True
         )
 
-    # Initialize with BetterTransformer, injecting Flash-Attention
-    model = BetterTransformer.transform(model)
+    if "t5" in model_path:
+        # Initialize with BetterTransformer, injecting Flash-Attention
+        model = BetterTransformer.transform(model)
+    elif "llama" in model_path:
+        # injecting Flash-Attention V2 for llama2 models
+        from flash_attn_patch import replace_llama_attn_with_flash_attn
+        replace_llama_attn_with_flash_attn()
+    else:
+        # some alibi-based llms are not supported with flash attention, though xformers / trition could be useful
+        pass
 
     # turn on eval mode to stop batch normalizarion & dropout, can work together with torch.inference_mode
     model = model.eval()
@@ -89,7 +94,7 @@ def get_model_answers(model_path, model_id, question_jsons, ray_num_gpus, load_i
     for i, line in enumerate(tqdm(question_jsons)):
         ques_json = json.loads(line)
         idx = ques_json["question_id"]
-        qs = q_pre + ques_json["text"] + qa_link
+        qs = ques_json["text"]
 
         task_type = ques_json["type"]
         if "t5" in model_path:
