@@ -81,7 +81,7 @@ def get_model_answers(model_path, model_id, question_jsons, ray_num_gpus, load_i
         model = BetterTransformer.transform(model)
     elif "llama" in model_path:
         # injecting Flash-Attention V2 for llama2 models
-        from flash_attn_patch import replace_llama_attn_with_flash_attn
+        from ..flash_attn_patch import replace_llama_attn_with_flash_attn
         replace_llama_attn_with_flash_attn()
     else:
         # some alibi-based llms are not supported with flash attention, though xformers / trition could be useful
