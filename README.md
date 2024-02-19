@@ -5,19 +5,8 @@ General DPO scripts for LLMs.
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 
 ## Settings
-We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2-suite-6551b56e743e6349aab45101), [Llama2 models](https://huggingface.co/meta-llama), [Qwen models](https://huggingface.co/Qwen)(1.0 version not 1.5) and [Baichuan2 Models](https://huggingface.co/baichuan-inc) with up to 100k instructions. Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. We use flashattention2 for faster training.
+We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2-suite-6551b56e743e6349aab45101), [Llama2 models](https://huggingface.co/meta-llama), [Qwen models](https://huggingface.co/Qwen)(1.0 version not 1.5) and [Baichuan2 Models](https://huggingface.co/baichuan-inc) with up to 100k instructions. Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. We use [flashattention2](https://github.com/Dao-AILab/flash-attention) and [deepspeed](https://github.com/microsoft/DeepSpeed/tree/master) for faster training.
 
-|| T5-3B | Vicuna-7B | Vicuna-13B | Vicuna-33B | Llama2-70B |
-| --- | --- | --- | --- | --- | --- |
-| Given Batch | 8 | 16 | 8 | 4 | 4 |
-| Accumulation | 2 | 1 | 2 | 4 | 2 |
-| Nodes | 1 | 1 | 1 | 1 | 2 |
-| All CPU RAM | 73.01G | 189.49G | 356.42G | 790.57G | 1486.12G |
-| GPU Util | 92.80% | 83.05% | 93.23% | 97.40% | 97.65% |
-| SFT Time | 1.04h | 0.98h | 2.35h | 5.74h | 36.67h |
-| DeepSpeed | Zero1 | Zero2 + Offload Optimizer | Zero3 + Offload Optimizer | Zero3 + Offload Optimizer & Params | Zero3 + Offload Optimizer |
-
-Note: It seems training Group-Query Attention in Llama2-70B with Flash Attention will be pretty slow.
 ## Workflow
 `RootPath` is the absolute path of this repo.
 
@@ -25,36 +14,7 @@ Note: It seems training Group-Query Attention in Llama2-70B with Flash Attention
 Download raw models in [model](model) folder. Put your data in [data](data) folder. Run `bash code/scripts/tuning.sh RootPath`.
 
 ### Inference Testing
-1 by 1 simple inference can be found [here](code/codes/eval/get_model_infer_simple.py). This is useful when different sample has different length requirement. You should set a `type` key in your data. We use this format: {'question_id': id, 'text': text, 'type': type}. There's a co-use example in [train script](code/scripts/tuning.sh) as well.
-```
-python3 code/codes/eval/get_model_infer_simple.py \
-    --model-id vicuna-33B \
-    --model-path model/vicuna-33B \
-    --question-file your-test-data \
-    --answer-file your-answer-file-path \
-    --num-gpus 8 \
-    --ray-num-gpus 2
-```
-
-Batch inference can be found [here](code/codes/eval/get_model_infer_batch.py). We use [VLLM](https://github.com/vllm-project/vllm).
-```
-python3 code/codes/eval/get_model_infer_batch.py \
-    --model-path model/vicuna-33B \
-    --question-file your-test-data \
-    --answer-file your-answer-file-path \
-    --max-target-len 512 \
-    --num-gpus 8 \
-    --num-partitions 2 \
-    --temperature 0.8 \
-    --top-p 0.95
-```
-Batch inference on 1 node with 1k samples (8~512 tokens) from ShareGPT, asking for maximum 512 tokens.
-| model | num-gpus | num-partitions | inference time (1k，8 * A100 40G，greedy search) |
-| ---- | ---- | ---- | ---- |
-| Vicuna 7B | 8 | 8 | 25s |
-| Vicuna 13B | 8 | 8 | 1min08s |
-| Vicuna 33B | 8 | 2 | 2min03s |
-| Llama2 70B | 8 | 2 | 9min25s |
+Please refer to the inference scripts in main branch.
 
 ## Acknowledgement
-We thank [Vicuna project](https://github.com/lm-sys/FastChat/tree/main) and [VLLM project](https://github.com/vllm-project/vllm) for their great work.
+We thank aforementioned LLM projects for their great work.
