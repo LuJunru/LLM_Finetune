@@ -41,7 +41,7 @@ for model in "${models[@]}"
         --nproc_per_node $GPU_NUM_PER_NODE \
         --master_addr $MASTER_ADDR \
         --master_port $MASTER_PORT \
-        codes/train_dpo.py \
+        ${RootPath}/code/codes/train_dpo.py \
         --model_name_or_path ${raw_model_path} \
         --bf16 True \
         --output_dir ${model_output_path} \
@@ -74,7 +74,7 @@ for model in "${models[@]}"
     if  [ $ISLORA -ne 0 ]
     then
         # merge lora and base model
-        python3 codes/merge_peft_adapter.py \
+        python3 ${RootPath}/code/codes/merge_peft_adapter.py \
             --adapter_model_name ${model_output_path} \
             --base_model_name ${raw_model_path} \
             --output_name ${final_model_output_path}
