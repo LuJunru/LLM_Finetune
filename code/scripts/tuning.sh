@@ -1,109 +1,82 @@
 export GLOO_SOCKET_IFNAME=eth0
 export WANDB_MODE=disabled
 
-maindir=$1
-datadir=${maindir}data
-codedir=${maindir}code
-
 MAXLEN=2048
 EPOCH=3
-test_data=${datadir}/data/dummy_conversation.json
+ISLORA=$1  # 1 for lora, 0 for full
+SETTING=$2  # ipo or sigmoid or others, pls refer to the dpo_trainer file here: https://github.com/LuJunru/LLM_Finetune/blob/DPO/code/codes/dpo_trainer.py#L819
+RootPath=$3  # root path
+BETA=0.01
 
-settings=("")  # use this for zeroshot or finetuning
-models=("t5-3b" "vicuna-7b" "vicuna-13b" "vicuna-33b" "llama2-70b")
+models=("70b")
 
 for model in "${models[@]}"
     do
+    raw_model_path=${RootPath}/model/tulu2-dpo-${model}/
+    train_data_path=${RootPath}/data/dpo_train_data_3W.jsonl
+    deepspeed_config_path=${RootPath}/code/configs/ds_config.json
 
-    raw_model_path=${maindir}model/fastchat-${model}/
-    case ${model} in 
-        "llama2-70b")
-            RAYGPUS=4
+    if [ $ISLORA -ne 0 ]
+    then
+        model_output_path=${RootPath}/model/${model}_${SETTING}_peft/
+        final_model_output_path=${RootPath}/model/tulu2-${model}-${SETTING}-3W-lora/
+    else
+        model_output_path=${RootPath}/model/tulu2-${model}-${SETTING}-3W-full/
+    fi
+
+    case ${model} in
+        "13b")
+            PER_GPU_BATCH=4
+            GRA_ACC=4
             ;;
-        "vicuna-33b")
-            RAYGPUS=2
-            ;;
-        "t5-3b"|"vicuna-7b"|"vicuna-13b")
-            RAYGPUS=1
+        "70b")
+            PER_GPU_BATCH=2
+            GRA_ACC=8
             ;;
     esac
     
-    # tuning
-    for setting in "${settings[@]}"
-        do
-        data_path=${datadir}/train_${setting}.json
-        preprocessed_data_dir=${datadir}/processed_${setting}_${model%-*}.pt
-        model_output_path=${maindir}model/${model}_${setting}/
-        deepspeed_config_path=${codedir}/configs/ds_config_${model#*-}.json
+    # training
+    torchrun --nnodes=$NODE_NUM \
+        --node_rank=$INDEX \
+        --nproc_per_node $GPU_NUM_PER_NODE \
+        --master_addr $MASTER_ADDR \
+        --master_port $MASTER_PORT \
+        codes/train_dpo.py \
+        --model_name_or_path ${raw_model_path} \
+        --bf16 True \
+        --output_dir ${model_output_path} \
+        --num_train_epochs ${EPOCH} \
+        --per_device_train_batch_size ${PER_GPU_BATCH} \
+        --gradient_accumulation_steps ${GRA_ACC} \
+        --save_strategy "steps" \
+        --save_steps 2500 \
+        --save_total_limit 1 \
+        --eval_steps 500 \
+        --learning_rate 5e-7 \
+        --log_level "info" \
+        --logging_strategy "steps" \
+        --logging_steps 1 \
+        --weight_decay 0.05 \
+        --warmup_ratio 0.1 \
+        --lr_scheduler_type "linear" \
+        --deepspeed ${deepspeed_config_path} \
+        --tf32 True \
+        --model_max_length ${MAXLEN} \
+        --train_data_path ${train_data_path} \
+        --preprocessing_num_workers 32 \
+        --dataloader_num_workers 32 \
+        --gradient_checkpointing True \
+        --report_to "none" \
+        --if_lora ${ISLORA} \
+        --beta ${BETA} \
+        --loss_type ${SETTING}
 
-        case ${model} in 
-            "t5-3b")
-                PER_GPU_BATCH=8
-                GRA_ACC=2
-                ;;
-            "vicuna-7b")
-                PER_GPU_BATCH=16
-                GRA_ACC=1
-                ;;
-            "vicuna-13b")
-                PER_GPU_BATCH=8
-                GRA_ACC=2
-                ;;
-            "vicuna-33b")
-                PER_GPU_BATCH=4
-                GRA_ACC=4
-                ;;
-            "llama2-70b")
-                PER_GPU_BATCH=4
-                GRA_ACC=2
-                ;;
-        esac
-
-        # train data preprocess
-        python3 ${codedir}/codes/train/data_preprocess.py \
-            --model_name_or_path ${raw_model_path} \
-            --data_path ${data_path} \
-            --preprocessing_num_workers=1 \
-            --model_max_length ${MAXLEN} \
-            --preprocessed_path ${preprocessed_data_dir}
-        
-        # training: avaliable for multi nodes
-        torchrun --nnodes=$NODE_NUM \
-            --node_rank=$INDEX \
-            --nproc_per_node $GPU_NUM_PER_NODE \
-            --master_addr $MASTER_ADDR \
-            --master_port $MASTER_PORT \
-            ${codedir}/codes/train/train.py \
-            --model_name_or_path ${raw_model_path} \
-            --bf16 True \
-            --output_dir ${model_output_path} \
-            --num_train_epochs ${EPOCH} \
-            --per_device_train_batch_size ${PER_GPU_BATCH} \
-            --gradient_accumulation_steps ${GRA_ACC} \
-            --save_strategy "steps" \
-            --save_steps 1500 \
-            --save_total_limit 1 \
-            --learning_rate 2e-5 \
-            --log_level "info" \
-            --logging_strategy "steps" \
-            --logging_steps 1 \
-            --weight_decay 0. \
-            --warmup_ratio 0.04 \
-            --lr_scheduler_type "cosine" \
-            --deepspeed ${deepspeed_config_path} \
-            --tf32 True \
-            --model_max_length ${MAXLEN} \
-            --preprocessed_path ${preprocessed_data_dir} \
-            --gradient_checkpointing True \
-            --report_to "none"
-        
-        # tuning inference
-        # python3 ${codedir}/codes/eval/get_model_infer_simple.py \
-        #     --model-id ${model}_${setting} \
-        #     --model-path ${model_output_path} \
-        #     --question-file ${test_data} \
-        #     --answer-file ${datadir}/instruction_testing/instruction_testing_${model}_${setting}.jsonl \
-        #     --num-gpus $GPU_NUM_PER_NODE \
-        #     --ray-num-gpus ${RAYGPUS}
-        done
+    if  [ $ISLORA -ne 0 ]
+    then
+        # merge lora and base model
+        python3 codes/merge_peft_adapter.py \
+            --adapter_model_name ${model_output_path} \
+            --base_model_name ${raw_model_path} \
+            --output_name ${final_model_output_path}
+    fi
     done
