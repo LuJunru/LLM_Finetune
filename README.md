@@ -1,5 +1,5 @@
 # LLM_SFT
-General SFT scripts for LLMs.
+General SFT scripts for LLMs. (See DPO scripts in DPO branch.)
 
 ## Environment
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
