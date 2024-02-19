@@ -11,7 +11,7 @@ We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2
 `RootPath` is the absolute path of this repo.
 
 ### Instruction Tuning
-Download raw models in [model](model) folder. Put your data in [data](data) folder. Run `bash code/scripts/tuning.sh RootPath`.
+Download raw models in [model](model) folder. Put your data in [data](data) folder. Run `bash code/scripts/tuning.sh 0 sigmoid RootPath`. 0 at $1 stands for full tuning, and sigmoid at $2 stands for dpo loss. Check the `tuning.sh` script for more details.
 
 ### Inference Testing
 Please refer to the inference scripts in main branch.
