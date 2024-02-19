@@ -1,11 +1,11 @@
-# LLM_SFT
-General SFT scripts for LLMs.
+# LLM_DPO
+General DPO scripts for LLMs.
 
 ## Environment
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 
 ## Settings
-We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/) (except Llama-2-70B-chat-hf) and 10k instructions (padded to max len, file [here](https://github.com/LuJunru/MemoChat/blob/main/data/memochat_instructions/train_10k.json)). Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. Hyperparameters: Epoch=3, Global Batch=128, Seq Len=2048, Lr=2e-5, Warmup Ratio=0.04, Gen Temperature=0.2. We use [BetterTransformer](https://huggingface.co/docs/optimum/bettertransformer/overview) to integrate flash attention, while directly use [Official Version](https://github.com/Dao-AILab/flash-attention) can lead to faster training.
+We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2-suite-6551b56e743e6349aab45101), [Llama2 models](https://huggingface.co/meta-llama), [Qwen models](https://huggingface.co/Qwen)(1.0 version not 1.5) and [Baichuan2 Models](https://huggingface.co/baichuan-inc) with up to 100k instructions. Our environment is 900G CPU RAM and 8 x A100 40G GPUs for every computing node. We use flashattention2 for faster training.
 
 || T5-3B | Vicuna-7B | Vicuna-13B | Vicuna-33B | Llama2-70B |
 | --- | --- | --- | --- | --- | --- |
