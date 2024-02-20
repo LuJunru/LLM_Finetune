@@ -3,7 +3,7 @@ from typing import Optional
 import torch
 import os
 from peft import PeftModel
-from transformers import LlamaForCausalLM, LlamaTokenizer, HfArgumentParser, LlamaConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, AutoConfig
 
 @dataclass
 class ScriptArguments:
@@ -19,14 +19,14 @@ def main():
     script_args = parser.parse_args_into_dataclasses()[0]
 
     # load config and tokenziers
-    config = LlamaConfig.from_pretrained(script_args.base_model_name)
+    config = AutoConfig.from_pretrained(script_args.base_model_name, trust_remote_code=True)
     config.use_cache = False
     # use truncation_side='left' to preserve linking between end of prompt and target labels
-    tokenizer = LlamaTokenizer.from_pretrained(script_args.base_model_name, truncation_side='left')
+    tokenizer = AutoTokenizer.from_pretrained(script_args.base_model_name, truncation_side='left', trust_remote_code=True)
     # initialize modules
-    model = LlamaForCausalLM.from_pretrained(script_args.base_model_name, config=config)
+    model = AutoModelForCausalLM.from_pretrained(script_args.base_model_name, config=config, trust_remote_code=True)
 
-     # add pad token in tokenizer if needed
+    # add pad token in tokenizer if needed
     if tokenizer.pad_token is None:
         tokenizer.add_special_tokens({"pad_token":"<pad>"})
         tokenizer.pad_token_id = 0
@@ -77,7 +77,7 @@ def main():
     model.half().save_pretrained(f"{script_args.output_name}")
     tokenizer.save_pretrained(f"{script_args.output_name}")
 
-    # remove possible lora modules
+    # # remove possible lora modules
     # os.system("rm -f {} {} {}".format(
     #     os.path.join(script_args.output_name, "adapter_model.bin"),
     #     os.path.join(script_args.output_name, "adapter_config.json"),
