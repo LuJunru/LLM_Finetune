@@ -7,8 +7,8 @@ LR=5e-7
 BETA=0.01
 LR_TYPE=linear
 
-RLType=$1  # ipo or sigmoid
-ISLORA=$2  # 1 for lora, 0 for full
+ISLORA=$1  # 1 for lora, 0 for full
+RLType=$2  # ipo or sigmoid
 ROOTPATH=$3
 M_TYPE=qwen  # default llama, llama / qwen / baichuan2
 
