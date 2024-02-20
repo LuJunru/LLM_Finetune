@@ -12,14 +12,13 @@ from datasets import load_dataset
 import transformers
 from transformers import (
     HfArgumentParser,
-    LlamaForCausalLM,
-    LlamaTokenizer,
-    LlamaConfig,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    AutoConfig,
     BitsAndBytesConfig,
     Trainer,
     TrainingArguments,
-    set_seed,
-    TrainerCallback
+    set_seed
 )
 
 from peft import (
@@ -28,10 +27,10 @@ from peft import (
 )
 from peft.tuners.lora import LoraLayer
 from dpo_trainer import DPOTrainer
-from flash_attn_patch import replace_llama_attn_with_flash_attn
 
 from deepspeed import zero
 from deepspeed.runtime.zero.partition_parameters import ZeroParamStatus
+from deepspeed.accelerator import get_accelerator
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +53,8 @@ class ModelArguments:
     )
     loss_type: Optional[str] = field(default="sigmoid", metadata={"help": "The loss type, either dpo or ipo."})
     if_lora: Optional[int] = field(default=1, metadata={"help": "Whether run lora or full training."})
-    beta: Optional[float] = field(default=0.1, metadata={"help": "beta in DPO/IPO loss"})
+    model_type: Optional[str] = field(default="llama", metadata={"help": "Model identification type."})
+    beta: Optional[float] = field(default=0.1, metadata={"help": "beta value in DPO/IPO loss"})
 
 @dataclass
 class DataTrainingArguments:
@@ -72,9 +72,6 @@ class DataTrainingArguments:
                 "value if set."
             )
         },
-    )
-    preprocessed_path: str = field(
-        default=None, metadata={"help": "Path to the preprocessed training data."}
     )
     train_data_path: Optional[str] = field(default=None, metadata={"help": "The input training data file (a jsonlines)."})
     eval_data_path: Optional[str] = field(default=None, metadata={"help": "The input evaluation data file (a jsonlines)."})
@@ -116,7 +113,11 @@ def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    replace_llama_attn_with_flash_attn()
+    if model_args.model_type == "llama":
+        from flash_attn_patch import replace_llama_attn_with_flash_attn
+        replace_llama_attn_with_flash_attn()
+    else:
+        pass
     
     # Setup logging
     logging.basicConfig(
@@ -144,9 +145,9 @@ def main():
 
     def preprocess_function(examples):
         prepared_inputs = {"prompt": [], "chosen": [], "rejected": []}
-        for p, g, r in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
+        for p, c, r, d in zip(examples["prompt"], examples["chosen"], examples["rejected"]):
             prepared_inputs["prompt"].append(p)
-            prepared_inputs["chosen"].append(g)
+            prepared_inputs["chosen"].append(c)
             prepared_inputs["rejected"].append(r)
         return prepared_inputs
     
@@ -155,6 +156,7 @@ def main():
     print("start data preprocess")
     data_files = {}
     data_files["train"] = data_args.train_data_path
+    data_files["valid"] = data_args.eval_data_path
     raw_datasets = load_dataset(
         "json",
         data_files=data_files
@@ -163,26 +165,26 @@ def main():
     prepared_dataset = raw_datasets.map(
         preprocess_function,
         batched=True,
-        batch_size=len(raw_datasets["train"]),
+        batch_size=len(raw_datasets["train"]) + len(raw_datasets["valid"]),
         remove_columns=column_names,
         num_proc=data_args.preprocessing_num_workers,
-        desc="Running tokenizer on train dataset"
+        desc="Running tokenizer on datasets"
     )
     if data_args.max_train_samples is not None:
         max_train_samples = min(len(prepared_dataset["train"]), data_args.max_train_samples)
         prepared_dataset["train"] = prepared_dataset["train"].select(range(max_train_samples))
-    logger.info("load dataset finished")
+    logger.info("load dataset finished, num of train: {}, num of valid: {}".format(len(prepared_dataset["train"]), len(prepared_dataset["valid"])))
 
     # load config and tokenziers
-    config = LlamaConfig.from_pretrained(model_args.model_name_or_path)
+    config = AutoConfig.from_pretrained(model_args.model_name_or_path, trust_remote_code=True)
     config.use_cache = False
     # use truncation_side='left' to preserve linking between end of prompt and target labels
-    tokenizer = LlamaTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left', padding_side='left')
+    tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left', trust_remote_code=True)
     # initialize modules
-    model = LlamaForCausalLM.from_pretrained(model_args.model_name_or_path, config=config)
+    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True)
     if model_args.if_lora == 0:
-        ref_model = LlamaForCausalLM.from_pretrained(model_args.model_name_or_path, config=config)
-
+        ref_model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, trust_remote_code=True)
+    
     if hasattr(model, "enable_input_require_grads"):
         model.enable_input_require_grads()
     else:
@@ -206,16 +208,33 @@ def main():
 
     # Setup Trainer
     training_args = training_args.to_dict()
+    # training_args |= {'remove_unused_columns': False}
     training_args.update({'remove_unused_columns': False})
     training_args = TrainingArguments(**training_args)
+
+    if model_args.model_type == "llama":
+        target_modules = [
+            "q_proj",
+            "v_proj"
+        ]
+    elif model_args.model_type == "qwen":
+        target_modules = [
+            "c_attn"
+        ]
+    elif model_args.model_type == "baichuan2":
+        target_modules = [
+            "W_pack"
+        ]
+    else:
+        target_modules = [
+            "W_pack"
+        ]
+    
     peft_config = LoraConfig(
         r=model_args.lora_r,
         lora_alpha=model_args.lora_alpha,
         lora_dropout=model_args.lora_dropout,
-        target_modules=[
-            "q_proj",
-            "v_proj"
-        ],
+        target_modules=target_modules,
         bias="none",
         task_type="CAUSAL_LM",
     )
@@ -228,6 +247,7 @@ def main():
         ref_model=ref_model,
         beta=model_args.beta, # DPO temprature
         train_dataset=prepared_dataset["train"],
+        eval_dataset=prepared_dataset["valid"],
         tokenizer=tokenizer,
         args=training_args,
         max_length=data_args.model_max_length,
