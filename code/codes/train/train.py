@@ -23,10 +23,6 @@ from transformers import (
     set_seed,
 )
 
-q_pre = "<s>\n"
-qa_link = "\n"
-a_pos = "\n</s>"
-
 logger = logging.getLogger(__name__)
 
 @dataclass
