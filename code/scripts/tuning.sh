@@ -3,7 +3,8 @@ export WANDB_MODE=disabled
 
 MAXLEN=8192  # default 4096
 EPOCH=3
-LR=5e-7
+SAVEINTERVAL=3
+LR=$(awk "BEGIN {print 1e-6 * sqrt($NODE_NUM)}")
 BETA=0.01
 LR_TYPE=linear
 
@@ -21,16 +22,6 @@ raw_model_path=${ROOTPATH}/model/your_model/
 train_data_path=${ROOTPATH}/data/your_train_data.jsonl
 eval_data_path=${ROOTPATH}/data/your_eval_data.jsonl
 deepspeed_config_path=${ROOTPATH}/code/configs/ds_config.json
-
-if [ $ISLORA -ne 0 ]
-then
-    model_output_path=${ROOTPATH}/output/${RLType}_peft_${M_TYPE}/
-    final_model_output_path=${ROOTPATH}/output/${RLType}_${M_TYPE}-lora/
-    EVALSTEP=500
-else
-    model_output_path=${ROOTPATH}/output/${RLType}_${M_TYPE}-full/
-    EVALSTEP=35
-fi
 
 case ${raw_model_path} in 
     *"7b"*)
@@ -53,6 +44,22 @@ case ${raw_model_path} in
         ;;
 esac
 
+TRAINDATANUM=$(wc -l < "${train_data_path}")
+SAVESTEP=$(awk "BEGIN {print int(${TRAINDATANUM} * ${EPOCH} / (${PER_GPU_BATCH} * ${GRA_ACC} * $GPU_NUM_PER_NODE * ${SAVEINTERVAL} * $NODE_NUM)) + 1}")
+TOTALSTEP=$(awk "BEGIN {print int(${TRAINDATANUM} * ${EPOCH} / (${PER_GPU_BATCH} * ${GRA_ACC} * $GPU_NUM_PER_NODE * $NODE_NUM)) + 1}")
+
+if [ $ISLORA -ne 0 ]
+then
+    model_output_path=${ROOTPATH}/output/${RLType}_peft_${M_TYPE}/
+    final_model_output_path=${ROOTPATH}/output/${RLType}_${M_TYPE}-lora/
+    EVALSTEP=100
+else
+    model_output_path=${ROOTPATH}/output/${RLType}_${M_TYPE}-full/
+    EVALSTEP=100
+fi
+
+echo "We use $NODE_NUM nodes to train with ${TRAINDATANUM} samples for ${EPOCH} epochs, resulting in ${TOTALSTEP} running steps, and thus we will save checkpoints every ${SAVESTEP} steps."
+
 # training
 torchrun --nnodes=$NODE_NUM \
     --node_rank=$INDEX \
@@ -67,7 +74,7 @@ torchrun --nnodes=$NODE_NUM \
     --per_device_train_batch_size ${PER_GPU_BATCH} \
     --gradient_accumulation_steps ${GRA_ACC} \
     --save_strategy "steps" \
-    --save_steps ${EVALSTEP} \
+    --save_steps ${SAVESTEP} \
     --save_total_limit 2 \
     --per_device_eval_batch_size ${PER_GPU_BATCH} \
     --evaluation_strategy "steps" \
