@@ -17,7 +17,7 @@ We tested with [vicuna models (v1.3)](https://lmsys.org/blog/2023-03-30-vicuna/)
 | SFT Time | 1.04h | 0.98h | 2.35h | 5.74h | 36.67h |
 | DeepSpeed | Zero1 | Zero2 + Offload Optimizer | Zero3 + Offload Optimizer | Zero3 + Offload Optimizer & Params | Zero3 + Offload Optimizer |
 
-Note: It seems training Group-Query Attention in Llama2-70B with Flash Attention will be pretty slow.
+Note: We now integrate flash attention with official packages, see [here](code/codes/flash_attn_patch.py).
 ## Workflow
 `RootPath` is the absolute path of this repo.
 
