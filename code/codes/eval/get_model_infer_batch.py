@@ -7,9 +7,6 @@ from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 
 MaxLen=4096
-q_pre = "<s>\n"
-qa_link = "\n"
-a_pos = "\n</s>"
 
 def run_eval(model_path, max_target_len, question_file, answer_file, temperature, top_p, gpus, load_in_8bit, task_type):
     os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(gpus)
@@ -27,11 +24,11 @@ def run_eval(model_path, max_target_len, question_file, answer_file, temperature
     with open(os.path.expanduser(question_file), "r") as ques_file:
         for line in ques_file:
             d_line = json.loads(line)
-            qs.append(q_pre + d_line["text"] + qa_link)
+            qs.append(d_line["text"])
             qs_ids.append(d_line["question_id"])
 
     model_path = os.path.expanduser(model_path)
-    model = LLM(model=model_path, gpu_memory_utilization=0.85, tensor_parallel_size=len(gpus), max_num_batched_tokens=MaxLen, trust_remote_code=True)
+    model = LLM(model=model_path, gpu_memory_utilization=0.85, tensor_parallel_size=len(gpus), max_model_len=MAX_LEN, max_num_batched_tokens=MaxLen, trust_remote_code=True)
 
     if task_type == "gen":
         sampling_params = SamplingParams(max_tokens=max_target_len, temperature=temperature, top_p=top_p)
