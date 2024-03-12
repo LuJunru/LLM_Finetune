@@ -17,7 +17,7 @@ Download raw models in [model](model) folder. Put your data in [data](data) fold
 Please refer to the inference scripts in main branch.
 
 ## Experimental Results
-We do reproducibility experiments with [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) and [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized). 
+We do reproducing experiments with [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) and [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized). 
 - We obtains comparable progressive metrics: ![](assets/training.png)
 - Our final benchmark results: <br><img src="assets/testing.png" width = "55%" />
 
