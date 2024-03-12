@@ -16,10 +16,6 @@ from transformers import (
     set_seed,
 )
 
-q_pre = "<s>\n"
-qa_link = "\n"
-a_pos = "\n</s>"
-
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -63,9 +59,9 @@ def main():
         tokenizer = T5Tokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left')
 
         def preprocess_function(examples):
-            src_inputs = [q_pre + example[0]["value"] + qa_link for example in examples["conversations"]]
+            src_inputs = [example[0]["value"] for example in examples["conversations"]]
             src_model_inputs = tokenizer(src_inputs, max_length=data_args.model_max_length, padding='longest', truncation=True, add_special_tokens=False)
-            trg_inputs = [example[1]["value"] + a_pos for example in examples["conversations"]]
+            trg_inputs = [example[1]["value"] for example in examples["conversations"]]
             trg_model_inputs = tokenizer(trg_inputs, max_length=data_args.model_max_length, padding='longest', truncation=True, add_special_tokens=False)
             src_model_inputs["labels"] = [
                 [(l if l != tokenizer.pad_token_id else label_ignore_id) for l in label] for label in trg_model_inputs["input_ids"]
@@ -76,12 +72,12 @@ def main():
         tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left', trust_remote_code=True)
 
         def preprocess_function(examples):
-            inputs = [q_pre + example[0]["value"] + qa_link + example[1]["value"] + a_pos for example in examples["conversations"]]
+            inputs = [example[0]["value"] + example[1]["value"] for example in examples["conversations"]]
             model_inputs = tokenizer(inputs, max_length=data_args.model_max_length, padding="longest", truncation=True, add_special_tokens=False)
             model_inputs["labels"] = copy.deepcopy(model_inputs["input_ids"])
             for e_i, example in enumerate(examples["conversations"]):
-                source_text = q_pre + example[0]["value"] + qa_link
-                target_text = example[1]["value"] + a_pos
+                source_text = example[0]["value"]
+                target_text = example[1]["value"]
                 source_ids = tokenizer.encode(source_text, add_special_tokens=False)
                 target_ids = tokenizer.encode(target_text, add_special_tokens=False)
                 if len(source_ids) >= data_args.model_max_length:
