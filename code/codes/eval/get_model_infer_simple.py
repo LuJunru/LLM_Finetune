@@ -9,8 +9,6 @@ import ray
 
 MaxLen = 2048
 TarLen = 512
-q_pre = "<s>\n"
-qa_link = "\n"
 
 # modify this to set your own task type and target length
 TaskTarLen = {
@@ -96,7 +94,7 @@ def get_model_answers(model_path, model_id, question_jsons, ray_num_gpus, load_i
     for i, line in enumerate(tqdm(question_jsons)):
         ques_json = json.loads(line)
         idx = ques_json["question_id"]
-        qs = q_pre + ques_json["text"] + qa_link
+        qs = ques_json["text"]
 
         task_type = ques_json["type"]
         if "t5" in model_path:
