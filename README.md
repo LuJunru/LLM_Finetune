@@ -12,7 +12,7 @@ We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2
 - optimizer: AdamW with default values
 - lr_scheduler_type: linear
 - lr_scheduler_warmup_ratio: 0.1
-- Weight Decay: 0.05
+- Weight Decay: 0.0
 - num_epochs: 3.0
 
 We use 2 nodes to fine-tune [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) over 61k [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized) data with DPO algorithms for 3 epochs. It takes 613.41G CPU RAM, reaching 93.01% GPU utilities and consuming 32 hours.
