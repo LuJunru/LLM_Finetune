@@ -5,9 +5,7 @@ General DPO scripts for LLMs.
 We provide [core_requirement.txt](core_requirement.txt) for your convenience.
 
 ## Settings
-We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2-suite-6551b56e743e6349aab45101), [Llama2 models](https://huggingface.co/meta-llama), [Qwen models](https://huggingface.co/Qwen)(1.0 version not 1.5) and [Baichuan2 Models](https://huggingface.co/baichuan-inc) with up to 100k instructions. Our environment is 900G CPU RAM and 8 x A800 80G GPUs for every computing node. We use [flashattention2](https://github.com/Dao-AILab/flash-attention) and [deepspeed](https://github.com/microsoft/DeepSpeed/tree/master) for faster training.
-
-The following hyperparameters were used during DPO training:
+We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2-suite-6551b56e743e6349aab45101), [Llama2 models](https://huggingface.co/meta-llama), [Qwen models](https://huggingface.co/Qwen)(1.0 version not 1.5) and [Baichuan2 Models](https://huggingface.co/baichuan-inc) with up to 100k instructions. Our environment is 900G CPU RAM and 8 x A800 80G GPUs for every computing node. We use [flashattention2](https://github.com/Dao-AILab/flash-attention) and [deepspeed](https://github.com/microsoft/DeepSpeed/tree/master) for faster training. The following hyperparameters were used during DPO training:
 - max_length: 8192 (dynamic padding to the max data length)
 - learning_rate: 1e-06 * sqrt(Num_of_Nodes)
 - total_train_batch_size: 128 * Num_of_Nodes
@@ -16,6 +14,8 @@ The following hyperparameters were used during DPO training:
 - lr_scheduler_warmup_ratio: 0.1
 - Weight Decay: 0.05
 - num_epochs: 3.0
+
+We use 2 nodes for fine-tuning [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) over 61k [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized) data with DPO algorithms. It takes 613.41G CPU RAM, reaching 93.01% GPU utilities and consuming 31.5 hours.
 
 ## Workflow
 `RootPath` is the absolute path of this repo.
