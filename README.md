@@ -28,8 +28,8 @@ Please refer to the inference scripts in main branch.
 
 ## Experimental Results
 We do reproducing experiments with [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) and [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized). 
-- We obtains comparable progressive metrics: ![](assets/training.png)
-- Our final benchmark results: <br><img src="assets/testing.png" width = "55%" />
+- We obtains comparable progressive metrics: ![](assets/metrics.png)
+- Our final benchmark results: ![](assets/benchmarks.png)
 
 ## Acknowledgement
 We thank aforementioned LLM projects for their great work.
