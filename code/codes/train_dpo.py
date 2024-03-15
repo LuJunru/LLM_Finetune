@@ -112,6 +112,12 @@ def get_peft_state_maybe_zero_3(state_dict, bias):
 def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+
+    if model_args.model_type == "llama":
+        from flash_attn_patch import replace_llama_attn_with_flash_attn
+        replace_llama_attn_with_flash_attn()
+    else:
+        pass
     
     # Setup logging
     logging.basicConfig(
@@ -175,9 +181,9 @@ def main():
     # use truncation_side='left' to preserve linking between end of prompt and target labels
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left', trust_remote_code=True)
     # initialize modules
-    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True, attn_implementation="flash_attention_2")
+    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True)
     if model_args.if_lora == 0:
-        ref_model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, trust_remote_code=True, attn_implementation="flash_attention_2")
+        ref_model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, trust_remote_code=True)
     
     if hasattr(model, "enable_input_require_grads"):
         model.enable_input_require_grads()
