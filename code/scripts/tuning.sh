@@ -33,14 +33,8 @@ case ${raw_model_path} in
         GRA_ACC=16
         ;;
     *"72b"*)
-        if [ $ISLORA -ne 0 ]
-        then
-            PER_GPU_BATCH=1
-            GRA_ACC=16
-        else
-            PER_GPU_BATCH=1
-            GRA_ACC=16
-        fi
+        PER_GPU_BATCH=1
+        GRA_ACC=16
         ;;
 esac
 
@@ -83,6 +77,7 @@ torchrun --nnodes=$NODE_NUM \
     --log_level "info" \
     --logging_strategy "steps" \
     --logging_steps 1 \
+    --weight_decay 0.0 \
     --warmup_ratio 0.1 \
     --lr_scheduler_type ${LR_TYPE} \
     --deepspeed ${deepspeed_config_path} \
