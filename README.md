@@ -29,7 +29,7 @@ Please refer to the inference scripts in main branch.
 ## Experimental Results
 We do reproducing experiments with [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) and [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized). 
 - We obtains comparable progressive metrics: ![](assets/metrics.png)
-- Our final benchmark results: ![](assets/benchmarks.png)
+- Our final benchmark results (3 shots for first 6 capacity-focused datasets and are tested locally, while last 2 open-ended datasets are tested with GPT4-turbo): ![](assets/benchmarks.png)
 
 ## Acknowledgement
 We thank aforementioned LLM projects for their great work.
