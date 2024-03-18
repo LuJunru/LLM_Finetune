@@ -29,7 +29,13 @@ Please refer to the inference scripts in main branch.
 ## Experimental Results
 We do reproducing experiments with [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) and [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized). 
 - We obtains comparable progressive metrics: ![](assets/metrics.png)
-- Our final benchmark results: ![](assets/benchmarks.png)
+- Our final benchmark results:
+
+| Model | Size | Alignment | MT-Bench (score) | AlpacaEval 2.0 (win rate %) |
+|-------------|-----|----|---------------|--------------|
+| **Tulu-v2-13b** 🐪 | **13B** | **SFT** | 5.79 | 2.61 |
+| **Tulu-v2-dpo-13b** 🐪 | **13B** | **DPO** | 6.06 | **6.96** |
+| **Reproduced-tulu2-dpo-13b** | **13B** | **DPO** | **6.27** | 6.71 |
 
 ## Acknowledgement
 We thank aforementioned LLM projects for their great work.
