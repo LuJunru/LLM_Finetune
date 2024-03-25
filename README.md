@@ -32,13 +32,13 @@ We do reproducing experiments with [tulu2-13b](https://huggingface.co/allenai/tu
 - Our final benchmark results (3 shots for first 6 capacity-focused datasets and are tested locally, while last 2 open-ended datasets are tested with GPT4-turbo), using [files](https://huggingface.co/datasets/Junrulu/Reproduced-tulu2-test-sets): ![](assets/benchmarks.png)
 - If we evaluate with benchmarks without chat template of tulu2, then it is better to fine-tune without chat template. For instance, evaluate with [HF Eval Tool](https://github.com/EleutherAI/lm-evaluation-harness):
 
-| | GSM8K 8-shot | BigBenchHard 3-cot-shot | IFEval 3-shot | PiQA 3-shot | MMLU 0-shot | TruthfulQA 3-shot | MT-Bench | AlpacaEval 2 |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| Tulu2-13B | 40.56 | 52.25 | 37.17 | 81.39 | 55.53 | 33.78 | 5.79 | 2.61 |
-| Tulu2-DPO-13B | 42.99 | 51.80 | 42.45 | 81.28 | 56.07 | **41.86** | 6.06 | **6.96** |
-| Our-DPO-13B-E1 | 42.61 | **52.91** | **43.76** | 81.77 | 55.85 | 35.86 | 5.91 | 4.60 |
-| Our-DPO-13B-E2 | 41.62 | 52.51 | 42.21 | **81.99** | 55.94 | 38.19 | 6.09 | 6.09 |
-| Our-DPO-13B-E3 | **43.44** | 52.27 | 43.17 | 81.66 | **56.08** | 39.66 | **6.27** | 6.71 |
+| | GSM8K 8-shot | BigBenchHard 3-cot-shot | IFEval 3-shot | PiQA 3-shot | MMLU 0-shot | TruthfulQA 3-shot |
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| Tulu2-13B | 40.56 | 52.25 | 37.17 | 81.39 | 55.53 | 33.78 |
+| Tulu2-DPO-13B | 42.99 | 51.80 | 42.45 | 81.28 | 56.07 | **41.86** |
+| Our-DPO-13B-E1 | 42.61 | **52.91** | **43.76** | 81.77 | 55.85 | 35.86 |
+| Our-DPO-13B-E2 | 41.62 | 52.51 | 42.21 | **81.99** | 55.94 | 38.19 |
+| Our-DPO-13B-E3 | **43.44** | 52.27 | 43.17 | 81.66 | **56.08** | 39.66 |
 
 ## Acknowledgement
 We thank aforementioned LLM projects for their great work.
