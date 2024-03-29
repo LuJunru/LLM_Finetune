@@ -5,7 +5,7 @@ MAXLEN=8192  # default 4096
 EPOCH=3
 SAVEINTERVAL=3
 LR=$(awk "BEGIN {print 1e-6 * sqrt($NODE_NUM)}")
-BETA=0.01
+BETA=0.1
 LR_TYPE=linear
 
 ISLORA=$1  # 1 for lora, 0 for full
