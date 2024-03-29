@@ -14,6 +14,7 @@ We tested with [tulu2 models](https://huggingface.co/collections/allenai/tulu-v2
 - lr_scheduler_warmup_ratio: 0.1
 - Weight Decay: 0.0
 - num_epochs: 3.0
+- Specifically add Tulu2 input format over training samples, see [here](https://huggingface.co/Junrulu/Reproduced-tulu2-dpo-13b#input-format)
 
 We use 2 nodes to fine-tune [tulu2-13b](https://huggingface.co/allenai/tulu-2-13b) over 61k [ultrafeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized) data with DPO algorithms for 3 epochs. It takes 613.41G CPU RAM, reaching 93.01% GPU utilities and consuming 32 hours. We release our model [here](https://huggingface.co/Junrulu/Reproduced-tulu2-dpo-13b).
 
