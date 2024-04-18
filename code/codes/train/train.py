@@ -140,8 +140,6 @@ def main():
         tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, truncation_side='left', trust_remote_code=True)
         # initialize modules
         model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True)
-
-    embedding_size = model.get_input_embeddings().weight.shape[0]
     
     # convert normal model to bettertransformer
     if "t5" in model_args.model_name_or_path.lower():
@@ -149,7 +147,7 @@ def main():
 
     # Setup seed
     set_seed(training_args.seed)
-    if len(tokenizer) > embedding_size:
+    if len(tokenizer) > tokenizer.vocab_size:
         model.resize_token_embeddings(len(tokenizer))
 
     # Setup Trainer
