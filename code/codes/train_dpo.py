@@ -195,8 +195,8 @@ def main():
 
     # add pad token in tokenizer if needed
     if tokenizer.pad_token is None:
-        tokenizer.add_special_tokens({"pad_token":"<pad>"})
-        tokenizer.pad_token_id = 0
+        tokenizer.add_special_tokens({"pad_token": tokenizer.eos_token})
+        tokenizer.pad_token_id = tokenizer.eos_token_id
 
     # Setup seed
     set_seed(training_args.seed)
